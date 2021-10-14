@@ -1,0 +1,88 @@
+---
+title: "Ista-320 Final Project"
+author: "Trinh Ha"
+date: "10/10/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Read data in
+
+This data provides information of all Disney movie releases and their interesting info, including but not limited to
+release date, running time, box office and budget. The data was acquired from kaggle, and can be found here:
+https://www.kaggle.com/sonukumari47/disney-movie-dataset
+
+```{r}
+library(tidyverse)
+disney_movie_data <- read_csv("data/Walt_disney_movie_dataset.csv")
+```
+
+## Question 1: What is the relationship between box office and budget for Disney's movie in United States?
+
+Filtered to include only observations with budget under 10 millions and box office under 50 millions
+The reason for this filter is to ensure the plot is not terribly stacked and badly scaled due to a low number of outliers (movies with unusually high budget or box office or both) 
+
+```{r}
+disney_movie_data %>%
+  filter(Country == "United States") %>%
+  filter(`Budget (float)` < 100000000) %>% 
+  filter(`Box office (float)` < 500000000) %>%
+  ggplot(aes(x = `Budget (float)`, y = `Box office (float)`)) +
+  geom_point(alpha = 0.5) + geom_smooth() +
+  ggtitle("Relationship between Disney\n box Office and Budget") +
+  xlab("Budget") + ylab("Box Office") +
+  theme(plot.title = element_text(color="red", size=15, face="bold", hjust = 0.5),
+        axis.title.x = element_text(size=10, face="bold"),
+        axis.title.y = element_text(size=10, face="bold"))
+```
+# Answer to question 1:
+
+The progression line of the plot suggests that in general, the budget and the box office has a positive proportional relationship, where an increase in one results in an increase in another. The slight curve downward in the first part of the progression line, however, suggests a contradicting claim. This seems to be caused by a fair amount of observations with unusually high box-office-to-budget ratio. 
+
+# Question 2: What is the distribution of Disney's average box office of United States across the year from
+# 1990 to 2010?
+
+
+```{r}
+disney_movie_data %>%
+  mutate(Year = format(as.Date(disney_movie_data$`Release date (datetime)`, format = "%Y-%m-%d"), "%Y")) %>%
+  filter(Year %in% c(1990:2010)) %>%
+  filter(Country == "United States") %>%
+  group_by(Year) %>%
+  summarise(average_box_office = mean(`Box office (float)`)) %>%
+  ggplot(aes(x = Year, y = average_box_office, group = 1)) +
+  geom_line() + geom_point() +
+  ggtitle("Disney Box Office Distribution") +
+  xlab("Year") + ylab("Average Box Office Per Year") +
+  theme(plot.title = element_text(color="red", size=15, face="bold", hjust = 0.5),
+        axis.title.x = element_text(size=10, face="bold"),
+        axis.title.y = element_text(size=10, face="bold"))
+
+```
+#Answer to question 2:
+
+The lowest point is at 1990 and the highest point is at 2010, which, interestingly is our starting and ending point respectively. No clear patterns can be discerned from the plot as the line seems to go up and down regularly. However, it is noticeable that the "up" and "down" years later on is almost always higher than the early "up" and "down" years. From this, we could tell that there is an improvement overall to Disney average box office as time goes by. 
+
+
+#Question 3: Which was the distribution of movie releases for Disney from 2000 to 2015?
+
+```{r}
+disney_movie_data %>%
+  mutate(Year = format(as.Date(disney_movie_data$`Release date (datetime)`, format = "%Y-%m-%d"), "%Y")) %>%
+  filter(Year %in% c(2000:2015)) %>%
+  group_by(Year, Country) %>%
+  ggplot(aes(x = Year, fill = Country)) +
+  geom_bar(position = "stack") +
+  ggtitle("Disney Movie Release Distribution") +
+  xlab("Year") + ylab("Number of Movies") +
+  theme(plot.title = element_text(color="red", size=15, face="bold", hjust = 0.5),
+        axis.title.x = element_text(size=10, face="bold"),
+        axis.title.y = element_text(size=10, face="bold"))
+
+```
+#Answer to question 3:
+
+The number of movie releases vary from 6 to 12, with bottom and peak at 2001 and 2010 respectively. It is evident that most movie releases were from the US, however, there is an interesting pattern where there are a good amount of movies from Japan early years and from India at later years.
